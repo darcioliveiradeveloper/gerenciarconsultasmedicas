@@ -9,38 +9,99 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-function menu() {
+// === MENU PRINCIPAL ===
+function menuPrincipal() {
   console.log("\n=== Sistema de Gerenciamento de Consultas ===");
-  console.log("1 - Adicionar Médico");
-  console.log("2 - Adicionar Paciente");
-  console.log("3 - Adicionar Consulta");
-  console.log("4 - Listar Consultas");
-  console.log("5 - Atualizar Médico");
-  console.log("6 - Atualizar Paciente");
-  console.log("7 - Atualizar Consulta");
-  console.log("8 - Remover Médico");
-  console.log("9 - Remover Paciente");
-  console.log("10 - Remover Consulta");
-  console.log("11 - Relatórios");
+  console.log("1 - Médicos");
+  console.log("2 - Pacientes");
+  console.log("3 - Consultas");
+  console.log("4 - Relatórios");
   console.log("0 - Sair");
 
   rl.question("Escolha uma opção: ", (opcao) => {
     switch (opcao) {
-      case "1": medico.adicionar(rl, menu); break;
-      case "2": paciente.adicionar(rl, menu); break;
-      case "3": consulta.adicionar(rl, menu); break;
-      case "4": consulta.listar(menu); break;
-      case "5": medico.atualizar(rl, menu); break;
-      case "6": paciente.atualizar(rl, menu); break;
-      case "7": consulta.atualizar(rl, menu); break;
-      case "8": medico.remover(rl, menu); break;
-      case "9": paciente.remover(rl, menu); break;
-      case "10": consulta.remover(rl, menu); break;
-      case "11": relatorios.menuRelatorios(rl, menu); break;
+      case "1": menuMedico(); break;
+      case "2": menuPaciente(); break;
+      case "3": menuConsulta(); break;
+      case "4": relatorios.menuRelatorios(rl, menuPrincipal); break;
       case "0": rl.close(); break;
-      default: menu();
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuPrincipal();
     }
   });
 }
 
-menu();
+// === SUBMENU MÉDICO ===
+function menuMedico() {
+  console.log("\n=== Menu Médico ===");
+  console.log("1 - Cadastrar Médico");
+  console.log("2 - Listar Médicos");
+  console.log("3 - Atualizar Médico");
+  console.log("4 - Excluir Médico");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      case "1": medico.adicionar(rl, menuMedico); break;
+      case "2": medico.listar(menuMedico); break;
+      case "3": medico.atualizar(rl, menuMedico); break;
+      case "4": medico.remover(rl, menuMedico); break;
+      case "0": menuPrincipal(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuMedico();
+    }
+  });
+}
+
+// === SUBMENU PACIENTE ===
+function menuPaciente() {
+  console.log("\n=== Menu Paciente ===");
+  console.log("1 - Cadastrar Paciente");
+  console.log("2 - Listar Pacientes");
+  console.log("3 - Atualizar Paciente");
+  console.log("4 - Excluir Paciente");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      case "1": paciente.adicionar(rl, menuPaciente); break;
+      case "2": paciente.listar(menuPaciente); break;
+      case "3": paciente.atualizar(rl, menuPaciente); break;
+      case "4": paciente.remover(rl, menuPaciente); break;
+      case "0": menuPrincipal(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuPaciente();
+    }
+  });
+}
+
+// === SUBMENU CONSULTA ===
+function menuConsulta() {
+  console.log("\n=== Menu Consulta ===");
+  console.log("1 - Cadastrar Consulta");
+  console.log("2 - Listar Consultas");
+  console.log("3 - Atualizar Consulta");
+  console.log("4 - Excluir Consulta");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      case "1": consulta.adicionar(rl, menuConsulta); break;
+      case "2": consulta.listar(menuConsulta); break;
+      case "3": consulta.atualizar(rl, menuConsulta); break;
+      case "4": consulta.remover(rl, menuConsulta); break;
+      case "0": menuPrincipal(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuConsulta();
+    }
+  });
+}
+
+// === INÍCIO DO SISTEMA ===
+menuPrincipal();
+
+// === TRATAMENTO DE SAÍDA ===
