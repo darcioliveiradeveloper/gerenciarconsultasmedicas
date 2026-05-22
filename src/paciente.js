@@ -36,25 +36,29 @@ function adicionar(rl, callback) {
       return callback();
     }
 
-    rl.question("Data de nascimento (dd/mm/aaaa): ", (dataNascimento) => {
-      const resultadoData = validacao.validarData(dataNascimento);
-      if (!resultadoData.valido) {
-        validacao.mostrarErro(resultadoData.mensagem);
-        return callback();
-      }
-
-      const novo = { id: pacientes.length + 1, nome, dataNascimento };
-      validacao.mostrarDados("Novo Paciente", novo);
-
-      validacao.confirmarAcao(rl, "Deseja confirmar o cadastro do paciente?", (ok) => {
-        if (ok) {
-          pacientes.push(novo);
-          salvar(pacientes);
-          console.log("✅ Paciente cadastrado!");
+    function perguntarData() {
+      rl.question("Data de nascimento (dd/mm/aaaa): ", (dataNascimento) => {
+        const resultadoData = validacao.validarData(dataNascimento);
+        if (!resultadoData.valido) {
+          validacao.mostrarErro(resultadoData.mensagem);
+          return perguntarData(); // volta a perguntar até ser válido
         }
-        callback();
+
+        const novo = { id: pacientes.length + 1, nome, dataNascimento };
+        validacao.mostrarDados("Novo Paciente", novo);
+
+        validacao.confirmarAcao(rl, "Deseja confirmar o cadastro do paciente?", (ok) => {
+          if (ok) {
+            pacientes.push(novo);
+            salvar(pacientes);
+            console.log("✅ Paciente cadastrado!");
+          }
+          callback();
+        });
       });
-    });
+    }
+
+    perguntarData();
   });
 }
 
@@ -69,29 +73,37 @@ function atualizar(rl, callback) {
 
     validacao.mostrarDados("Dados atuais do Paciente", paciente);
 
-    rl.question("Novo nome: ", (nome) => {
-      rl.question("Nova data de nascimento (dd/mm/aaaa): ", (dataNascimento) => {
-        const resultadoData = validacao.validarData(dataNascimento);
-        if (!resultadoData.valido) {
-          validacao.mostrarErro(resultadoData.mensagem);
-          return callback();
-        }
+    rl.question(`Novo nome (${paciente.nome}): `, (nome) => {
+      const novoNome = nome.trim() === "" ? paciente.nome : nome;
 
-        const novosDados = { id, nome, dataNascimento };
-        console.log("\n📋 Comparação:");
-        validacao.mostrarDados("Antigo", paciente);
-        validacao.mostrarDados("Novo", novosDados);
+      function perguntarData() {
+        rl.question(`Nova data de nascimento (${paciente.dataNascimento}): `, (dataNascimento) => {
+          const novaData = dataNascimento.trim() === "" ? paciente.dataNascimento : dataNascimento;
 
-        validacao.confirmarAcao(rl, "Deseja confirmar a atualização?", (ok) => {
-          if (ok) {
-            paciente.nome = nome;
-            paciente.dataNascimento = dataNascimento;
-            salvar(pacientes);
-            console.log("✅ Paciente atualizado!");
+          const resultadoData = validacao.validarData(novaData);
+          if (!resultadoData.valido) {
+            validacao.mostrarErro(resultadoData.mensagem);
+            return perguntarData(); // volta a perguntar até ser válido
           }
-          callback();
+
+          const novosDados = { id, nome: novoNome, dataNascimento: novaData };
+          console.log("\n📋 Comparação:");
+          validacao.mostrarDados("Antigo", paciente);
+          validacao.mostrarDados("Novo", novosDados);
+
+          validacao.confirmarAcao(rl, "Deseja confirmar a atualização?", (ok) => {
+            if (ok) {
+              paciente.nome = novoNome;
+              paciente.dataNascimento = novaData;
+              salvar(pacientes);
+              console.log("✅ Paciente atualizado!");
+            }
+            callback();
+          });
         });
-      });
+      }
+
+      perguntarData();
     });
   });
 }
@@ -118,5 +130,5 @@ function remover(rl, callback) {
   });
 }
 
-module.exports = { listar, adicionar, atualizar, remover };
+module.exports = { adicionar, listar, atualizar, remover };
 

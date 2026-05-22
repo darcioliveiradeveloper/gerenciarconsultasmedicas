@@ -15,7 +15,8 @@ function menuPrincipal() {
   console.log("1 - Médicos");
   console.log("2 - Pacientes");
   console.log("3 - Consultas");
-  console.log("4 - Relatórios");
+  console.log("4 - Busca");
+  console.log("5 - Relatórios");
   console.log("0 - Sair");
 
   rl.question("Escolha uma opção: ", (opcao) => {
@@ -23,7 +24,8 @@ function menuPrincipal() {
       case "1": menuMedico(); break;
       case "2": menuPaciente(); break;
       case "3": menuConsulta(); break;
-      case "4": relatorios.menuRelatorios(rl, menuPrincipal); break;
+      case "4": menuBusca(); break;
+      case "5": relatorios.menuRelatorios(rl, menuPrincipal); break;
       case "0": rl.close(); break;
       default:
         console.log("❌ Opção inválida. Tente novamente.");
@@ -101,7 +103,35 @@ function menuConsulta() {
   });
 }
 
+// === SUBMENU BUSCA ===
+function menuBusca() {
+  console.log("\n=== Menu Busca ===");
+  console.log("1 - Buscar Médico por ID");
+  console.log("2 - Buscar Médico por Nome");
+  console.log("3 - Buscar Médico por Especialidade");
+  console.log("4 - Buscar Paciente por ID");
+  console.log("5 - Buscar Paciente por Nome");
+  console.log("6 - Buscar Paciente por Data de Nascimento");
+  console.log("7 - Buscar Consulta por ID");
+  console.log("8 - Buscar Consulta por Médico");
+  console.log("9 - Buscar Consulta por Especialidade");
+  console.log("10 - Buscar Consulta por Paciente ID");
+  console.log("11 - Buscar Consulta por Paciente Nome");
+  console.log("12 - Buscar Consulta por Data de Nascimento do Paciente");
+  console.log("13 - Buscar Consulta por palavras na Descrição");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      // Aqui você criará funções específicas de busca em cada módulo
+      // Exemplo: medico.buscarPorId(rl, menuBusca);
+      case "0": menuPrincipal(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuBusca();
+    }
+  });
+}
+
 // === INÍCIO DO SISTEMA ===
 menuPrincipal();
-
-// === TRATAMENTO DE SAÍDA ===

@@ -1,8 +1,10 @@
 const fs = require("fs");
 const validacao = require("./validacao");
-const path = "./src/consultas.json";
+const pathConsultas = "./src/consultas.json";
+const pathMedicos = "./src/medicos.json";
+const pathPacientes = "./src/pacientes.json";
 
-function carregar() {
+function carregar(path) {
   try {
     return JSON.parse(fs.readFileSync(path, "utf8") || "[]");
   } catch {
@@ -11,59 +13,92 @@ function carregar() {
 }
 
 function salvar(dados) {
-  fs.writeFileSync(path, JSON.stringify(dados, null, 2));
+  fs.writeFileSync(pathConsultas, JSON.stringify(dados, null, 2));
+}
+
+function adicionar(rl, callback) {
+  const consultas = carregar(pathConsultas);
+  const medicos = carregar(pathMedicos);
+  const pacientes = carregar(pathPacientes);
+
+  function perguntarData() {
+    rl.question("Data da consulta (dd/mm/aaaa): ", (data) => {
+      const resultadoData = validacao.validarData(data);
+      if (!resultadoData.valido) {
+        validacao.mostrarErro(resultadoData.mensagem);
+        return perguntarData(); // repete até ser válido
+      }
+
+      rl.question("ID do médico: ", (idMedico) => {
+        const medico = medicos.find(m => m.id == idMedico);
+        if (!medico) {
+          validacao.mostrarErro("Médico não encontrado.");
+          return callback();
+        }
+        console.log(`Médico selecionado: ${medico.id} - ${medico.nome}`);
+
+        rl.question("ID do paciente: ", (idPaciente) => {
+          const paciente = pacientes.find(p => p.id == idPaciente);
+          if (!paciente) {
+            validacao.mostrarErro("Paciente não encontrado.");
+            return callback();
+          }
+          console.log(`Paciente selecionado: ${paciente.id} - ${paciente.nome}`);
+
+          rl.question("Descrição: ", (descricao) => {
+            const existe = consultas.find(c => c.idMedico == idMedico && c.data == data);
+            if (existe) {
+              validacao.mostrarErro("Já existe consulta para este médico nesta data!");
+              return callback();
+            }
+
+            const nova = {
+              id: consultas.length + 1,
+              data,
+              idMedico,
+              nomeMedico: medico.nome,
+              idPaciente,
+              nomePaciente: paciente.nome,
+              descricao
+            };
+
+            validacao.mostrarDados("Nova Consulta", nova);
+
+            validacao.confirmarAcao(rl, "Deseja confirmar o cadastro da consulta?", (ok) => {
+              if (ok) {
+                consultas.push(nova);
+                salvar(consultas);
+                console.log("✅ Consulta cadastrada!");
+              }
+              callback();
+            });
+          });
+        });
+      });
+    });
+  }
+
+  perguntarData();
 }
 
 function listar(callback) {
-  const consultas = carregar();
+  const consultas = carregar(pathConsultas);
   console.log("\n=== Lista de Consultas ===");
   if (consultas.length === 0) {
     console.log("Nenhuma consulta cadastrada.");
   } else {
     consultas.forEach(c => {
-      console.log(`ID: ${c.id} | Data: ${c.data} | Médico: ${c.idMedico} | Paciente: ${c.idPaciente} | Descrição: ${c.descricao}`);
+      console.log(`ID: ${c.id} | Data: ${c.data} | Médico: ${c.idMedico} - ${c.nomeMedico} | Paciente: ${c.idPaciente} - ${c.nomePaciente} | Descrição: ${c.descricao}`);
     });
   }
   if (callback) callback();
 }
 
-function adicionar(rl, callback) {
-  const consultas = carregar();
-  rl.question("Data da consulta (dd/mm/aaaa): ", (data) => {
-    const resultadoData = validacao.validarData(data);
-    if (!resultadoData.valido) {
-      validacao.mostrarErro(resultadoData.mensagem);
-      return callback();
-    }
-
-    rl.question("ID do médico: ", (idMedico) => {
-      rl.question("ID do paciente: ", (idPaciente) => {
-        rl.question("Descrição: ", (descricao) => {
-          const existe = consultas.find(c => c.idMedico == idMedico && c.data == data);
-          if (existe) {
-            validacao.mostrarErro("Já existe consulta para este médico nesta data!");
-            return callback();
-          }
-
-          const nova = { id: consultas.length + 1, data, idMedico, idPaciente, descricao };
-          validacao.mostrarDados("Nova Consulta", nova);
-
-          validacao.confirmarAcao(rl, "Deseja confirmar o cadastro da consulta?", (ok) => {
-            if (ok) {
-              consultas.push(nova);
-              salvar(consultas);
-              console.log("✅ Consulta cadastrada!");
-            }
-            callback();
-          });
-        });
-      });
-    });
-  });
-}
-
 function atualizar(rl, callback) {
-  const consultas = carregar();
+  const consultas = carregar(pathConsultas);
+  const medicos = carregar(pathMedicos);
+  const pacientes = carregar(pathPacientes);
+
   rl.question("ID da consulta: ", (id) => {
     const consulta = consultas.find(c => c.id == id);
     if (!consulta) {
@@ -73,41 +108,74 @@ function atualizar(rl, callback) {
 
     validacao.mostrarDados("Dados atuais da Consulta", consulta);
 
-    rl.question("Nova data (dd/mm/aaaa): ", (data) => {
-      const resultadoData = validacao.validarData(data);
-      if (!resultadoData.valido) {
-        validacao.mostrarErro(resultadoData.mensagem);
-        return callback();
-      }
+    function perguntarData() {
+      rl.question(`Nova data (${consulta.data}): `, (data) => {
+        const novaData = data.trim() === "" ? consulta.data : data;
 
-      rl.question("Novo ID do médico: ", (idMedico) => {
-        rl.question("Novo ID do paciente: ", (idPaciente) => {
-          rl.question("Nova descrição: ", (descricao) => {
-            const novosDados = { id, data, idMedico, idPaciente, descricao };
-            console.log("\n📋 Comparação:");
-            validacao.mostrarDados("Antiga", consulta);
-            validacao.mostrarDados("Nova", novosDados);
+        const resultadoData = validacao.validarData(novaData);
+        if (!resultadoData.valido) {
+          validacao.mostrarErro(resultadoData.mensagem);
+          return perguntarData(); // repete até ser válido
+        }
 
-            validacao.confirmarAcao(rl, "Deseja confirmar a atualização da consulta?", (ok) => {
-              if (ok) {
-                consulta.data = data;
-                consulta.idMedico = idMedico;
-                consulta.idPaciente = idPaciente;
-                consulta.descricao = descricao;
-                salvar(consultas);
-                console.log("✅ Consulta atualizada!");
-              }
-              callback();
+        rl.question(`Novo ID do médico (${consulta.idMedico}): `, (idMedico) => {
+          const novoMedico = idMedico.trim() === "" ? consulta.idMedico : idMedico;
+          const medico = medicos.find(m => m.id == novoMedico);
+          if (!medico) {
+            validacao.mostrarErro("Médico não encontrado.");
+            return callback();
+          }
+
+          rl.question(`Novo ID do paciente (${consulta.idPaciente}): `, (idPaciente) => {
+            const novoPaciente = idPaciente.trim() === "" ? consulta.idPaciente : idPaciente;
+            const paciente = pacientes.find(p => p.id == novoPaciente);
+            if (!paciente) {
+              validacao.mostrarErro("Paciente não encontrado.");
+              return callback();
+            }
+
+            rl.question(`Nova descrição (${consulta.descricao}): `, (descricao) => {
+              const novaDescricao = descricao.trim() === "" ? consulta.descricao : descricao;
+
+              const novosDados = {
+                id,
+                data: novaData,
+                idMedico: novoMedico,
+                nomeMedico: medico.nome,
+                idPaciente: novoPaciente,
+                nomePaciente: paciente.nome,
+                descricao: novaDescricao
+              };
+
+              console.log("\n📋 Comparação:");
+              validacao.mostrarDados("Antiga", consulta);
+              validacao.mostrarDados("Nova", novosDados);
+
+              validacao.confirmarAcao(rl, "Deseja confirmar a atualização da consulta?", (ok) => {
+                if (ok) {
+                  consulta.data = novaData;
+                  consulta.idMedico = novoMedico;
+                  consulta.nomeMedico = medico.nome;
+                  consulta.idPaciente = novoPaciente;
+                  consulta.nomePaciente = paciente.nome;
+                  consulta.descricao = novaDescricao;
+                  salvar(consultas);
+                  console.log("✅ Consulta atualizada!");
+                }
+                callback();
+              });
             });
           });
         });
       });
-    });
+    }
+
+    perguntarData();
   });
 }
 
 function remover(rl, callback) {
-  let consultas = carregar();
+  let consultas = carregar(pathConsultas);
   rl.question("ID da consulta: ", (id) => {
     const consulta = consultas.find(c => c.id == id);
     if (!consulta) {
@@ -128,10 +196,4 @@ function remover(rl, callback) {
   });
 }
 
-module.exports = { listar, adicionar, atualizar, remover };
-
-/* Para rodar este código, certifique-se de ter o Node.js instalado. 
- Salve este arquivo como "consulta.js" dentro da pasta "src" do seu projeto. 
- Você pode então importar e usar as funções deste módulo no seu arquivo principal (index.js) 
- para gerenciar as consultas médicas. */
- 
+module.exports = { adicionar, listar, atualizar, remover };

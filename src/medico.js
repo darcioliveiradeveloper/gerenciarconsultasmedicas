@@ -58,17 +58,24 @@ function atualizar(rl, callback) {
       validacao.mostrarErro("Médico não encontrado.");
       return callback();
     }
+
     validacao.mostrarDados("Dados atuais do Médico", medico);
-    rl.question("Novo nome: ", (nome) => {
-      rl.question("Nova especialidade: ", (especialidade) => {
-        const novosDados = { id, nome, especialidade };
+
+    rl.question(`Novo nome (${medico.nome}): `, (nome) => {
+      const novoNome = nome.trim() === "" ? medico.nome : nome;
+
+      rl.question(`Nova especialidade (${medico.especialidade}): `, (especialidade) => {
+        const novaEspecialidade = especialidade.trim() === "" ? medico.especialidade : especialidade;
+
+        const novosDados = { id, nome: novoNome, especialidade: novaEspecialidade };
         console.log("\n📋 Comparação:");
         validacao.mostrarDados("Antigo", medico);
         validacao.mostrarDados("Novo", novosDados);
+
         validacao.confirmarAcao(rl, "Deseja confirmar a atualização?", (ok) => {
           if (ok) {
-            medico.nome = nome;
-            medico.especialidade = especialidade;
+            medico.nome = novoNome;
+            medico.especialidade = novaEspecialidade;
             salvar(medicos);
             console.log("✅ Médico atualizado!");
           }
@@ -99,5 +106,5 @@ function remover(rl, callback) {
   });
 }
 
-module.exports = { listar, adicionar, atualizar, remover };
+module.exports = { adicionar, listar, atualizar, remover };
 
