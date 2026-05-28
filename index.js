@@ -103,28 +103,19 @@ function menuConsulta() {
   });
 }
 
-// === SUBMENU BUSCA ===
+// === SUBMENU BUSCA PRINCIPAL ===
 function menuBusca() {
   console.log("\n=== Menu Busca ===");
-  console.log("1 - Buscar Médico por ID");
-  console.log("2 - Buscar Médico por Nome");
-  console.log("3 - Buscar Médico por Especialidade");
-  console.log("4 - Buscar Paciente por ID");
-  console.log("5 - Buscar Paciente por Nome");
-  console.log("6 - Buscar Paciente por Data de Nascimento");
-  console.log("7 - Buscar Consulta por ID");
-  console.log("8 - Buscar Consulta por Médico");
-  console.log("9 - Buscar Consulta por Especialidade");
-  console.log("10 - Buscar Consulta por Paciente ID");
-  console.log("11 - Buscar Consulta por Paciente Nome");
-  console.log("12 - Buscar Consulta por Data de Nascimento do Paciente");
-  console.log("13 - Buscar Consulta por palavras na Descrição");
+  console.log("1 - Buscar Médico");
+  console.log("2 - Buscar Paciente");
+  console.log("3 - Buscar Consulta");
   console.log("0 - Voltar");
 
   rl.question("Escolha uma opção: ", (opcao) => {
     switch (opcao) {
-      // Aqui você criará funções específicas de busca em cada módulo
-      // Exemplo: medico.buscarPorId(rl, menuBusca);
+      case "1": menuBuscaMedico(); break;
+      case "2": menuBuscaPaciente(); break;
+      case "3": menuBuscaConsulta(); break;
       case "0": menuPrincipal(); break;
       default:
         console.log("❌ Opção inválida. Tente novamente.");
@@ -133,5 +124,127 @@ function menuBusca() {
   });
 }
 
+// === SUBMENU BUSCA MÉDICO ===
+function menuBuscaMedico() {
+  console.log("\n=== Busca Médico ===");
+  console.log("1 - Buscar por ID");
+  console.log("2 - Buscar por Nome");
+  console.log("3 - Buscar por Especialidade");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      case "1": medico.buscarPorId(rl, menuBuscaMedico); break;
+      case "2": medico.buscarPorNome(rl, menuBuscaMedico); break;
+      case "3": medico.buscarPorEspecialidade(rl, menuBuscaMedico); break;
+      case "0": menuBusca(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuBuscaMedico();
+    }
+  });
+}
+
+// === SUBMENU BUSCA PACIENTE ===
+function menuBuscaPaciente() {
+  console.log("\n=== Busca Paciente ===");
+  console.log("1 - Buscar por ID");
+  console.log("2 - Buscar por Nome");
+  console.log("3 - Buscar por Data de Nascimento");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      case "1": paciente.buscarPorId(rl, menuBuscaPaciente); break;
+      case "2": paciente.buscarPorNome(rl, menuBuscaPaciente); break;
+      case "3": paciente.buscarPorNascimento(rl, menuBuscaPaciente); break;
+      case "0": menuBusca(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuBuscaPaciente();
+    }
+  });
+}
+
+// === SUBMENU BUSCA CONSULTA ===
+function menuBuscaConsulta() {
+  console.log("\n=== Busca Consulta ===");
+  console.log("1 - Buscar por ID da Consulta");
+  console.log("2 - Buscar por Médico (ID)");
+  console.log("3 - Buscar por Especialidade");
+  console.log("4 - Buscar por Paciente ID");
+  console.log("5 - Buscar por Paciente Nome");
+  console.log("6 - Buscar por Data de Nascimento do Paciente");
+  console.log("7 - Buscar por palavras na Descrição");
+  console.log("0 - Voltar");
+
+  rl.question("Escolha uma opção: ", (opcao) => {
+    switch (opcao) {
+      case "1": consulta.buscarPorId(rl, menuBuscaConsulta); break;
+      case "2": consulta.buscarPorMedico(rl, menuBuscaConsulta); break;
+      case "3": consulta.buscarPorEspecialidade(rl, menuBuscaConsulta); break;
+      case "4": consulta.buscarPorPacienteId(rl, menuBuscaConsulta); break;
+      case "5": consulta.buscarPorPacienteNome(rl, menuBuscaConsulta); break;
+      case "6": consulta.buscarPorPacienteNascimento(rl, menuBuscaConsulta); break;
+      case "7": consulta.buscarPorDescricao(rl, menuBuscaConsulta); break;
+      case "0": menuBusca(); break;
+      default:
+        console.log("❌ Opção inválida. Tente novamente.");
+        menuBuscaConsulta();
+    }
+  });
+}
+
 // === INÍCIO DO SISTEMA ===
 menuPrincipal();
+
+// === TRATAMENTO DE SAÍDA ===
+rl.on("close", () => {
+  console.log("\nAté logo!");
+  process.exit(0);
+});
+
+
+// === TRATAMENTO DE ERROS ===
+process.on("uncaughtException", (err) => {
+  console.error("Ocorreu um erro inesperado:", err);
+  rl.close();
+});
+
+// === TRATAMENTO DE SINAL DE INTERRUPÇÃO (Ctrl+C) ===
+process.on("SIGINT", () => {
+  console.log("\nInterrupção detectada. Encerrando o sistema...");
+  rl.close();
+});
+
+// === TRATAMENTO DE SINAL DE TERMINAÇÃO (kill) ===
+process.on("SIGTERM", () => {
+  console.log("\nSinal de término recebido. Encerrando o sistema...");
+  rl.close();
+});
+
+// === TRATAMENTO DE SINAL DE DESLIGAMENTO (shutdown) ===
+process.on("shutdown", () => {
+  console.log("\nSinal de desligamento recebido. Encerrando o sistema...");
+  rl.close();
+});
+
+// === TRATAMENTO DE SINAL DE REINÍCIO (restart) ===
+process.on("restart", () => {
+  console.log("\nSinal de reinício recebido. Reiniciando o sistema...");
+  rl.close();
+});
+
+// === TRATAMENTO DE SINAL DE HIBERNAÇÃO (hibernate) ===
+process.on("hibernate", () => {
+  console.log("\nSinal de hibernação recebido. Hibernando o sistema...");
+  rl.close();
+});
+
+// === TRATAMENTO DE SINAL DE DESPERTAR (wake) ===
+process.on("wake", () => {
+  console.log("\nSinal de despertar recebido. Despertando o sistema...");
+  rl.close();
+});
+
+//
